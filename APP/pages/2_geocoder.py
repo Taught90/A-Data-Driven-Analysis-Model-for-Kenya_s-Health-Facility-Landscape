@@ -49,8 +49,8 @@ with st.sidebar:
     selected_dataset = st.selectbox('Select A dataset', datasets)
     
     # Data path configuration
-    data_path = ' A-Data-Driven-Analysis-Model-for-Kenya_s-Health-Facility-Landscape/DATA/CLEANED DATA (CSV)'
-    alternative_data_path = ' A-Data-Driven-Analysis-Model-for-Kenya_s-Health-Facility-Landscape/DATA/CLEANED DATA (CSV)/GEOCODED'
+    data_path = 'CLEANED DATA (CSV)'
+    alternative_data_path = 'CLEANED DATA (CSV)/GEOCODED'
     
     st.markdown("---")
     st.header("Geocoding Settings")
@@ -82,7 +82,7 @@ def load_dataset(dataset_name):
             return df
     except FileNotFoundError:
         st.error(f"File not found: {filename}")
-        st.info("Please make sure your data is in the correct path:  A-Data-Driven-Analysis-Model-for-Kenya_s-Health-Facility-Landscape/DATA/CLEANED DATA (CSV)/")
+        st.info("Please make sure your data is in the correct path:CLEANED DATA (CSV)/")
         return None
     except Exception as e:
         st.error(f"Error loading dataset: {str(e)}")
