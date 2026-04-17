@@ -199,7 +199,7 @@ def load_population_data(data_path='APP/CLEANED DATA (CSV)/'):
             st.warning(f"Data path not found: {data_path}")
             return None
         
-        # Find first file containing 'population' (case-insensitive)
+        # Find files containing 'population' (case-insensitive)
         population_files = [
             f for f in os.listdir(data_path)
             if 'population' in f.lower() and f.endswith('.csv')
@@ -212,39 +212,42 @@ def load_population_data(data_path='APP/CLEANED DATA (CSV)/'):
         pop_file = os.path.join(data_path, population_files[0])
         pop_df = pd.read_csv(pop_file)
         
-        # Standardize county names if column exists
-        if 'County' in pop_df.columns:
-            pop_df['County'] = (
-                pop_df['County']
-                .astype(str)
-                .str.strip()
-                .str.upper()
-            )
+        # Display column names for debugging (remove in production)
+        print(f"Population file columns: {pop_df.columns.tolist()}")
         
-        # Convert numeric columns safely (handles commas)
+        # Try to find county column (case-insensitive)
+        county_col = None
         for col in pop_df.columns:
-            if pop_df[col].dtype == 'object':
-                try:
-                    # Check if column contains numeric data with commas
-                    test_val = pop_df[col].dropna().iloc[0] if len(pop_df) > 0 else ""
-                    if isinstance(test_val, str) and (test_val.replace(',', '').replace('.', '').isdigit() or test_val.replace(',', '').lstrip('-').replace('.', '').isdigit()):
-                        pop_df[col] = pop_df[col].str.replace(',', '', regex=False)
-                        pop_df[col] = pd.to_numeric(pop_df[col], errors='coerce')
-                except (IndexError, AttributeError, ValueError):
-                    continue
+            if 'county' in col.lower():
+                county_col = col
+                break
+        
+        if county_col:
+            pop_df['County'] = pop_df[county_col].astype(str).str.strip().str.upper()
+        
+        # Try to find population column
+        pop_col = None
+        for col in pop_df.columns:
+            if 'population' in col.lower() or 'pop' in col.lower() or 'total' in col.lower():
+                pop_col = col
+                break
+        
+        if pop_col:
+            # Clean and convert population column
+            pop_df['Population'] = (
+                pop_df[pop_col]
+                .astype(str)
+                .str.replace(',', '', regex=False)
+                .str.replace(' ', '', regex=False)
+            )
+            pop_df['Population'] = pd.to_numeric(pop_df['Population'], errors='coerce')
+        else:
+            st.warning(f"No population column found. Available columns: {pop_df.columns.tolist()}")
         
         return pop_df
     
-    except FileNotFoundError as e:
-        st.error(f"File not found error: {str(e)}")
-        return None
-    except pd.errors.EmptyDataError as e:
-        st.error(f"Empty data error: {str(e)}")
-        return None
     except Exception as e:
-        # Convert exception to string safely
-        error_msg = str(e) if str(e) else repr(e)
-        st.error(f"Error loading population data: {error_msg}")
+        st.error(f"Error loading population data: {str(e)}")
         return None
 
 def create_facility_location_viewer(df, pop_df=None, lat_col=None, lon_col=None, 
