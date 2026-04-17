@@ -12,7 +12,7 @@ import os
 # Set page configuration
 st.set_page_config(
     page_title="Kenya Health Facilities & Population Dashboard",
-    page_icon="../APP/ASSETS/PNGs/health-svgrepo-com.png",
+    page_icon="../ASSETS/PNGs/health-svgrepo-com.png",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -585,13 +585,13 @@ def save_custom_view(df, filters, view_name):
 
 def main():
     # Header
-    logo = st.image('../APP/ASSETS/PNGs/metrics-svgrepo-com.png', width= 120)
+    logo = st.image('../ASSETS/PNGs/metrics-svgrepo-com.png', width= 120)
     st.markdown('<h1 class="main-header">Kenya Health Facilities & Population Dashboard</h1>', 
                 unsafe_allow_html=True)
     
     # Sidebar
     with st.sidebar:
-        st.image("../APP/ASSETS/PNGs/resources-svgrepo-com.png", 
+        st.image("../ASSETS/PNGs/resources-svgrepo-com.png", 
                  width=120)
         
         expander_logo = 'ASSETS/PNGs/controls-svgrepo-com.png'
@@ -628,7 +628,7 @@ def main():
         if st.session_state.dashboard_data is not None:
             df = st.session_state.dashboard_data
             
-            filter_icon = '../APP/ASSETS/PNGs/filter-svgrepo-com.png'
+            filter_icon = '../ASSETS/PNGs/filter-svgrepo-com.png'
             with st.expander(F"{filter_icon} Filters", expanded=True):
                 # Expander icon
                 st.image(filter_icon, width=50)

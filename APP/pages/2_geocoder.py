@@ -13,7 +13,7 @@ import numpy as np
 # Set page configuration
 st.set_page_config(
     page_title="Kenya Healthcare Facilities Geocoder",
-    page_icon="../APP/ASSETS/PNGs/health-svgrepo-com.png",
+    page_icon="../ASSETS/PNGs/health-svgrepo-com.png",
     layout="wide"
 )
 
@@ -24,7 +24,7 @@ if 'current_dataset' not in st.session_state:
     st.session_state.current_dataset = None
 
 # Title with Kenya
-logo = st.image('../APP/ASSETS/PNGs/map-pin-alt-svgrepo-com.png', width= 120)
+logo = st.image('../ASSETS/PNGs/map-pin-alt-svgrepo-com.png', width= 120)
 st.title("Kenya Healthcare Facilities Geocoder")
 st.markdown("Geocode healthcare facilities from SHA/NHIF datasets to get coordinates for mapping")
 
