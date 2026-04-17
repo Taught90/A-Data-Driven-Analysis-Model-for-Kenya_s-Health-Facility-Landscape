@@ -21,7 +21,7 @@ datasets = [
                         ]
 dataset = st.sidebar.selectbox('Select A dataset',datasets)
 dataset = str(dataset).replace("[","").replace("]","").replace("'", "")
-data_path = '../../../../DATA/CLEANED DATA (CSV)'
+data_path = ' A-Data-Driven-Analysis-Model-for-Kenya_s-Health-Facility-Landscape/DATA/CLEANED DATA (CSV)'
 filename = f'{data_path}/{dataset}.csv'
 download_filename = f'{dataset}.csv'
 
@@ -29,7 +29,7 @@ download_filename = f'{dataset}.csv'
 filenames = []
 for additional_dataset in datasets:
     additional_dataset = str(additional_dataset).replace("[","").replace("]","").replace("'", "")
-    data_path = '../../../../DATA/CLEANED DATA (CSV)'
+    data_path = ' A-Data-Driven-Analysis-Model-for-Kenya_s-Health-Facility-Landscape/DATA/CLEANED DATA (CSV)'
     filenames.append(f'{data_path}/{additional_dataset}.csv')
 filenames.pop(8)
 
