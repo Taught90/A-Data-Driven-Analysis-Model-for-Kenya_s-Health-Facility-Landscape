@@ -3,8 +3,9 @@ import pandas as pd
 import os
 
 
-st.set_page_config(layout='wide')
-
+st.set_page_config(layout='wide',
+                   page_icon="../APP/ASSETS/PNGs/health-svgrepo-com.png",
+                   )
 
 st.title('Kenya Health Facility Landscape Analysis Dashboard')
 st.write('Transforming Data into Actionable Healthcare Intelligence')

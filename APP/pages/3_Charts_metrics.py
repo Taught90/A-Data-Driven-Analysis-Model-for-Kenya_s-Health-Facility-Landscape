@@ -12,6 +12,7 @@ import os
 # Set page configuration
 st.set_page_config(
     page_title="Kenya Health Facilities & Population Dashboard",
+    page_icon="../APP/ASSETS/PNGs/health-svgrepo-com.png",
     layout="wide",
     initial_sidebar_state="expanded"
 )

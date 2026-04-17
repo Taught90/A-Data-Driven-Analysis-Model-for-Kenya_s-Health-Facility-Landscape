@@ -3,7 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-st.set_page_config(layout='wide')
+st.set_page_config(layout='wide',
+                   page_icon="../APP/ASSETS/PNGs/health-svgrepo-com.png",
+                   )
 
 datasets = [
     'CONTRACTED-FACILITES-REHABILITATION',

@@ -10,6 +10,7 @@ from datetime import datetime
 # Page configuration (must be first Streamlit command)
 st.set_page_config(
     page_title="County Performance | Kenya Health Dashboard",
+    page_icon="../APP/ASSETS/PNGs/health-svgrepo-com.png",
     layout="wide"
 )
 
