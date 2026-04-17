@@ -4,7 +4,7 @@ import os
 
 
 st.set_page_config(layout='wide',
-                   page_icon="../ASSETS/PNGs/health-svgrepo-com.png",
+                   page_icon="APP/ASSETS/PNGs/health-svgrepo-com.png",
                    )
 
 st.title('Kenya Health Facility Landscape Analysis Dashboard')
