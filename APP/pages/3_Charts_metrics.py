@@ -221,30 +221,30 @@ def load_population_data(data_path='APP/CLEANED DATA (CSV)/'):
                 .str.upper()
             )
         
-        # Convert ONLY numeric columns safely (handles commas)
+        # Convert numeric columns safely (handles commas)
         for col in pop_df.columns:
-            # Check if column contains numeric data with potential commas
             if pop_df[col].dtype == 'object':
-                # Try to convert to numeric, but only if it looks like numbers
-                sample = pop_df[col].dropna().astype(str).iloc[0] if len(pop_df) > 0 else ""
-                if sample.replace(',', '').replace('.', '').isdigit():
-                    pop_df[col] = (
-                        pop_df[col]
-                        .astype(str)
-                        .str.replace(',', '', regex=False)
-                    )
-                    pop_df[col] = pd.to_numeric(pop_df[col], errors='coerce')
-        
-        # Validate we have population columns
-        population_cols = [col for col in pop_df.columns if 'pop' in col.lower()]
-        if not population_cols:
-            st.warning("No population columns found in the data")
-            return None
+                try:
+                    # Check if column contains numeric data with commas
+                    test_val = pop_df[col].dropna().iloc[0] if len(pop_df) > 0 else ""
+                    if isinstance(test_val, str) and (test_val.replace(',', '').replace('.', '').isdigit() or test_val.replace(',', '').lstrip('-').replace('.', '').isdigit()):
+                        pop_df[col] = pop_df[col].str.replace(',', '', regex=False)
+                        pop_df[col] = pd.to_numeric(pop_df[col], errors='coerce')
+                except (IndexError, AttributeError, ValueError):
+                    continue
         
         return pop_df
     
+    except FileNotFoundError as e:
+        st.error(f"File not found error: {str(e)}")
+        return None
+    except pd.errors.EmptyDataError as e:
+        st.error(f"Empty data error: {str(e)}")
+        return None
     except Exception as e:
-        st.error(f"Error loading population data: {e}")
+        # Convert exception to string safely
+        error_msg = str(e) if str(e) else repr(e)
+        st.error(f"Error loading population data: {error_msg}")
         return None
 
 def create_facility_location_viewer(df, pop_df=None, lat_col=None, lon_col=None, 
