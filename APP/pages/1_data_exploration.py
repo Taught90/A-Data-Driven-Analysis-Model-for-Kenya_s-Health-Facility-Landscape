@@ -21,7 +21,7 @@ datasets = [
                         ]
 dataset = st.sidebar.selectbox('Select A dataset',datasets)
 dataset = str(dataset).replace("[","").replace("]","").replace("'", "")
-data_path = '../../../DATA/CLEANED DATA (CSV)'
+data_path = '../../DATA/CLEANED DATA (CSV)'
 filename = f'{data_path}/{dataset}.csv'
 download_filename = f'{dataset}.csv'
 
