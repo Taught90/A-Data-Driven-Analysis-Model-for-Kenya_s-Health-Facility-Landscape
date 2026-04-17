@@ -192,21 +192,27 @@ def load_all_datasets(data_path='APP/CLEANED DATA (CSV)/GEOCODED'):
 
 def load_population_data(data_path='APP/CLEANED DATA (CSV)/'):
     """Load and clean population data"""
-
+    
     try:
+        # Check if directory exists
+        if not os.path.exists(data_path):
+            st.warning(f"Data path not found: {data_path}")
+            return None
+        
         # Find first file containing 'population' (case-insensitive)
         population_files = [
             f for f in os.listdir(data_path)
-            if 'population' in f.lower()
+            if 'population' in f.lower() and f.endswith('.csv')
         ]
-
+        
         if not population_files:
+            st.warning("No population data file found")
             return None
-
+        
         pop_file = os.path.join(data_path, population_files[0])
         pop_df = pd.read_csv(pop_file)
-
-        # Standardize county names
+        
+        # Standardize county names if column exists
         if 'County' in pop_df.columns:
             pop_df['County'] = (
                 pop_df['County']
@@ -214,19 +220,29 @@ def load_population_data(data_path='APP/CLEANED DATA (CSV)/'):
                 .str.strip()
                 .str.upper()
             )
-
-        # Convert numeric columns safely
+        
+        # Convert ONLY numeric columns safely (handles commas)
         for col in pop_df.columns:
-            pop_df[col] = (
-                pop_df[col]
-                .astype(str)
-                .str.replace(',', '', regex=False)
-            )
-
-            pop_df[col] = pd.to_numeric(pop_df[col], errors='coerce')
-
+            # Check if column contains numeric data with potential commas
+            if pop_df[col].dtype == 'object':
+                # Try to convert to numeric, but only if it looks like numbers
+                sample = pop_df[col].dropna().astype(str).iloc[0] if len(pop_df) > 0 else ""
+                if sample.replace(',', '').replace('.', '').isdigit():
+                    pop_df[col] = (
+                        pop_df[col]
+                        .astype(str)
+                        .str.replace(',', '', regex=False)
+                    )
+                    pop_df[col] = pd.to_numeric(pop_df[col], errors='coerce')
+        
+        # Validate we have population columns
+        population_cols = [col for col in pop_df.columns if 'pop' in col.lower()]
+        if not population_cols:
+            st.warning("No population columns found in the data")
+            return None
+        
         return pop_df
-
+    
     except Exception as e:
         st.error(f"Error loading population data: {e}")
         return None
