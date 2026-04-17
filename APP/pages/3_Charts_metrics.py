@@ -104,7 +104,7 @@ def classify_kenya_facility(facility_name, facility_data=None):
         'facility_type': facility_str[:30]  # Truncated for display
     }
 
-def load_all_datasets(data_path='.../DATA/CLEANED DATA (CSV)/GEOCODED'):
+def load_all_datasets(data_path='.../../../../DATA/CLEANED DATA (CSV)/GEOCODED'):
     """Load all facility datasets"""
     datasets = [
         'CONTRACTED-FACILITES-REHABILITATION',
@@ -190,7 +190,7 @@ def load_all_datasets(data_path='.../DATA/CLEANED DATA (CSV)/GEOCODED'):
         return combined_df
     return None
 
-def load_population_data(data_path='.../DATA/CLEANED DATA (CSV)/'):
+def load_population_data(data_path='.../../../../DATA/CLEANED DATA (CSV)/'):
     """Load and clean population data"""
 
     try:
