@@ -116,7 +116,6 @@ def load_all_datasets(data_path='APP/CLEANED DATA (CSV)/GEOCODED'):
         'CONTRACTED-FACILITIES-NGOs',
         'CONTRACTED-FACILITIES-PRIVATE',
         'SHA-FACILITIES-PAYMENT-ANALYSIS'
-        'POPULATION DATA'
     ]
     
     all_data = []
@@ -216,7 +215,7 @@ def load_population_data(data_path='APP/CLEANED DATA (CSV)/'):
                 .str.upper()
             )
 
-        # Convert numeric columns safely (handles commas)
+        # Convert numeric columns safely
         for col in pop_df.columns:
             pop_df[col] = (
                 pop_df[col]
@@ -224,7 +223,7 @@ def load_population_data(data_path='APP/CLEANED DATA (CSV)/'):
                 .str.replace(',', '', regex=False)
             )
 
-            pop_df[col] = pd.to_numeric(pop_df[col], errors='ignore')
+            pop_df[col] = pd.to_numeric(pop_df[col], errors='coerce')
 
         return pop_df
 
