@@ -191,7 +191,7 @@ def load_all_datasets(data_path='APP/CLEANED DATA (CSV)/GEOCODED'):
     return None
 
 def load_population_data(data_path='APP/CLEANED DATA (CSV)/'):
-    """Load and clean population data"""
+    """Load and clean population data from cleaned CSV"""
     
     try:
         # Check if directory exists
@@ -199,7 +199,7 @@ def load_population_data(data_path='APP/CLEANED DATA (CSV)/'):
             st.warning(f"Data path not found: {data_path}")
             return None
         
-        # Find files containing 'population' (case-insensitive)
+        # Find population file
         population_files = [
             f for f in os.listdir(data_path)
             if 'population' in f.lower() and f.endswith('.csv')
@@ -209,40 +209,29 @@ def load_population_data(data_path='APP/CLEANED DATA (CSV)/'):
             st.warning("No population data file found")
             return None
         
+        # Load the cleaned CSV
         pop_file = os.path.join(data_path, population_files[0])
         pop_df = pd.read_csv(pop_file)
         
-        # Display column names for debugging (remove in production)
-        print(f"Population file columns: {pop_df.columns.tolist()}")
-        
-        # Try to find county column (case-insensitive)
-        county_col = None
-        for col in pop_df.columns:
-            if 'county' in col.lower():
-                county_col = col
-                break
-        
-        if county_col:
-            pop_df['County'] = pop_df[county_col].astype(str).str.strip().str.upper()
-        
-        # Try to find population column
-        pop_col = None
-        for col in pop_df.columns:
-            if 'population' in col.lower() or 'pop' in col.lower() or 'total' in col.lower():
-                pop_col = col
-                break
-        
-        if pop_col:
-            # Clean and convert population column
-            pop_df['Population'] = (
-                pop_df[pop_col]
+        # Since the CSV is already clean, just standardize county names
+        if 'County' in pop_df.columns:
+            pop_df['County'] = (
+                pop_df['County']
                 .astype(str)
-                .str.replace(',', '', regex=False)
-                .str.replace(' ', '', regex=False)
+                .str.strip()
+                .str.upper()
             )
-            pop_df['Population'] = pd.to_numeric(pop_df['Population'], errors='coerce')
+        
+        # Verify population column exists and is numeric
+        population_cols = [col for col in pop_df.columns if 'pop' in col.lower() or 'total' in col.lower()]
+        
+        if population_cols:
+            pop_col = population_cols[0]
+            # Ensure it's numeric (should be already, but just in case)
+            pop_df[pop_col] = pd.to_numeric(pop_df[pop_col], errors='coerce')
+            st.success(f"Successfully loaded population data for {len(pop_df)} counties")
         else:
-            st.warning(f"No population column found. Available columns: {pop_df.columns.tolist()}")
+            st.warning(f"Population column not found. Columns: {pop_df.columns.tolist()}")
         
         return pop_df
     
@@ -760,7 +749,7 @@ def main():
         
         with tab2:
             st.markdown('<h2 class="sub-header">County-Level Analysis</h2>', 
-                       unsafe_allow_html=True)
+                    unsafe_allow_html=True)
             
             if county_col and pop_df is not None:
                 # County selector
@@ -773,7 +762,10 @@ def main():
                 
                 # Display county metrics
                 county_df = df[df[county_col] == selected_county_detail]
-                county_pop = pop_df[pop_df['County'] == selected_county_detail].iloc[0] if selected_county_detail in pop_df['County'].values else None
+                
+                # Get population data for selected county
+                county_pop_series = pop_df[pop_df['County'] == selected_county_detail]
+                county_pop = county_pop_series.iloc[0] if len(county_pop_series) > 0 else None
                 
                 # Metrics row
                 col1, col2, col3, col4 = st.columns(4)
@@ -782,19 +774,21 @@ def main():
                 with col2:
                     st.metric("KEPH Levels", county_df['keph_level'].nunique())
                 with col3:
-                    if county_pop is not None:
-                        total_pop = county_pop.get('Total')
-                        
+                    if county_pop is not None and 'Total' in county_pop:
+                        total_pop = county_pop['Total']
                         if pd.notna(total_pop):
-                            st.metric("Population", f"{total_pop:,.0f}")
+                            st.metric("Population", f"{int(total_pop):,}")
                         else:
                             st.metric("Population", "N/A")
                     else:
                         st.metric("Population", "N/A")
                 with col4:
-                    if county_pop is not None and not pd.isna(county_pop.get('Population Density')):
+                    if county_pop is not None and 'Population Density' in county_pop:
                         density = county_pop['Population Density']
-                        st.metric("Population Density\n", f"{density:.1f}/km²")
+                        if pd.notna(density):
+                            st.metric("Population Density", f"{density:.1f}/km²")
+                        else:
+                            st.metric("Population Density", "N/A")
                     else:
                         st.metric("Population Density", "N/A")
                 
