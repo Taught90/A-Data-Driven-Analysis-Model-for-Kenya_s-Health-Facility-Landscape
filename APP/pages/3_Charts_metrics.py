@@ -116,6 +116,7 @@ def load_all_datasets(data_path='APP/CLEANED DATA (CSV)/GEOCODED'):
         'CONTRACTED-FACILITIES-NGOs',
         'CONTRACTED-FACILITIES-PRIVATE',
         'SHA-FACILITIES-PAYMENT-ANALYSIS'
+        'POPULATION DATA'
     ]
     
     all_data = []
@@ -190,11 +191,21 @@ def load_all_datasets(data_path='APP/CLEANED DATA (CSV)/GEOCODED'):
         return combined_df
     return None
 
-def load_population_data(file_path= 'APP/CLEANED DATA (CSV)/POPULATION DATA.csv'):
-    """Load and clean population data from a single file path"""
+def load_population_data(data_path='APP/CLEANED DATA (CSV)/'):
+    """Load and clean population data"""
 
     try:
-        pop_df = pd.read_csv(file_path)
+        # Find first file containing 'population' (case-insensitive)
+        population_files = [
+            f for f in os.listdir(data_path)
+            if 'population' in f.lower()
+        ]
+
+        if not population_files:
+            return None
+
+        pop_file = os.path.join(data_path, population_files[0])
+        pop_df = pd.read_csv(pop_file)
 
         # Standardize county names
         if 'County' in pop_df.columns:
@@ -205,13 +216,14 @@ def load_population_data(file_path= 'APP/CLEANED DATA (CSV)/POPULATION DATA.csv'
                 .str.upper()
             )
 
-        # Clean numeric columns (remove commas, convert safely)
+        # Convert numeric columns safely (handles commas)
         for col in pop_df.columns:
             pop_df[col] = (
                 pop_df[col]
                 .astype(str)
                 .str.replace(',', '', regex=False)
             )
+
             pop_df[col] = pd.to_numeric(pop_df[col], errors='ignore')
 
         return pop_df
