@@ -157,7 +157,8 @@ def load_all_datasets(data_path='APP/CLEANED DATA (CSV)/GEOCODED'):
                 # Add metadata
                 facility_type = dataset.replace('CONTRACTED-FACILITIES-', '') \
                                        .replace('CONTRACTED-FACILITES-', '')
-                df['County'] = df['County']
+                if 'County' in df.columns:
+                    df['County'] = df['County']
                 df['facility_category'] = facility_type
                 df['ownership'] = ownership_mapping.get(facility_type, 'Unknown')
                 df['keph_level'] = keph_mapping.get(facility_type, 'Level 2')
@@ -213,7 +214,7 @@ def load_population_data(data_path='APP/CLEANED DATA (CSV)/'):
         pop_file = os.path.join(data_path, population_files[0])
         pop_df = pd.read_csv(pop_file)
         
-        # Since the CSV is already clean, just standardize county names
+        # Standardize county names
         if 'County' in pop_df.columns:
             pop_df['County'] = (
                 pop_df['County']
@@ -222,17 +223,15 @@ def load_population_data(data_path='APP/CLEANED DATA (CSV)/'):
                 .str.upper()
             )
         
-        # Verify population column exists and is numeric
-        population_cols = [col for col in pop_df.columns if 'pop' in col.lower() or 'total' in col.lower()]
+        # Ensure numeric columns are properly formatted
+        numeric_columns = ['Total', 'Male', 'Female', 'Intersex', 'Households', 
+                          'Average_HouseHold_Size', 'LandArea', 'Population Density']
         
-        if population_cols:
-            pop_col = population_cols[0]
-            # Ensure it's numeric (should be already, but just in case)
-            pop_df[pop_col] = pd.to_numeric(pop_df[pop_col], errors='coerce')
-            st.success(f"Successfully loaded population data for {len(pop_df)} counties")
-        else:
-            st.warning(f"Population column not found. Columns: {pop_df.columns.tolist()}")
+        for col in numeric_columns:
+            if col in pop_df.columns:
+                pop_df[col] = pd.to_numeric(pop_df[col], errors='coerce')
         
+        st.success(f"Successfully loaded population data for {len(pop_df)} counties")
         return pop_df
     
     except Exception as e:
@@ -348,8 +347,14 @@ def create_county_drilldown(df, pop_df, county_col, selected_county):
     # Filter for selected county
     county_df = df[df[county_col] == selected_county].copy()
     
-    # Get population data for the county
-    county_pop = pop_df[pop_df['County'] == selected_county].iloc[0] if pop_df is not None and selected_county in pop_df['County'].values else None
+    # Get population data for the county (case-insensitive)
+    county_pop = None
+    if pop_df is not None:
+        selected_county_upper = selected_county.upper().strip()
+        pop_df['County_Upper'] = pop_df['County'].str.upper().str.strip()
+        matching_rows = pop_df[pop_df['County_Upper'] == selected_county_upper]
+        if len(matching_rows) > 0:
+            county_pop = matching_rows.iloc[0]
     
     # Create subplot figure
     fig = make_subplots(
@@ -364,38 +369,42 @@ def create_county_drilldown(df, pop_df, county_col, selected_county):
     
     # 1. KEPH Level distribution pie chart
     keph_counts = county_df['keph_level'].value_counts()
-    fig.add_trace(
-        go.Pie(
-            labels=keph_counts.index,
-            values=keph_counts.values,
-            name="KEPH Level",
-            marker=dict(colors=px.colors.qualitative.Set3),
-            textinfo='percent+label',
-            hoverinfo='label+percent+value'
-        ),
-        row=1, col=1
-    )
+    if len(keph_counts) > 0:
+        fig.add_trace(
+            go.Pie(
+                labels=keph_counts.index,
+                values=keph_counts.values,
+                name="KEPH Level",
+                marker=dict(colors=px.colors.qualitative.Set3),
+                textinfo='percent+label',
+                hoverinfo='label+percent+value'
+            ),
+            row=1, col=1
+        )
     
     # 2. Ownership distribution bar chart
     ownership_counts = county_df['ownership'].value_counts()
-    fig.add_trace(
-        go.Bar(
-            x=ownership_counts.index,
-            y=ownership_counts.values,
-            name="Ownership",
-            marker_color='lightblue',
-            text=ownership_counts.values,
-            textposition='outside'
-        ),
-        row=1, col=2
-    )
+    if len(ownership_counts) > 0:
+        fig.add_trace(
+            go.Bar(
+                x=ownership_counts.index,
+                y=ownership_counts.values,
+                name="Ownership",
+                marker_color='lightblue',
+                text=ownership_counts.values,
+                textposition='outside'
+            ),
+            row=1, col=2
+        )
     
-    # 3. Population demographics
+    # 3. Population demographics (using correct column names)
     if county_pop is not None:
         demographics = ['Male', 'Female', 'Intersex']
-        values = [county_pop.get('Male', 0), 
-                 county_pop.get('Female', 0), 
-                 county_pop.get('Intersex', 0)]
+        values = [
+            county_pop.get('Male', 0),
+            county_pop.get('Female', 0), 
+            county_pop.get('Intersex', 0)
+        ]
         
         fig.add_trace(
             go.Bar(
@@ -411,17 +420,18 @@ def create_county_drilldown(df, pop_df, county_col, selected_county):
     
     # 4. Facility type distribution
     category_counts = county_df['facility_category'].value_counts().head(5)
-    fig.add_trace(
-        go.Pie(
-            labels=category_counts.index,
-            values=category_counts.values,
-            name="Facility Types",
-            marker=dict(colors=px.colors.qualitative.Pastel),
-            textinfo='percent+label',
-            hole=0.3
-        ),
-        row=2, col=2
-    )
+    if len(category_counts) > 0:
+        fig.add_trace(
+            go.Pie(
+                labels=category_counts.index,
+                values=category_counts.values,
+                name="Facility Types",
+                marker=dict(colors=px.colors.qualitative.Pastel),
+                textinfo='percent+label',
+                hole=0.3
+            ),
+            row=2, col=2
+        )
     
     # Update layout
     fig.update_layout(
@@ -443,13 +453,20 @@ def create_county_comparison(df, pop_df, county_col, selected_counties):
     """Create county comparison dashboard"""
     
     if len(selected_counties) < 2:
-        return None
+        return None, None
+    
+    # Create standardized county names for matching
+    pop_df['County_Upper'] = pop_df['County'].str.upper().str.strip()
     
     comparison_data = []
     
     for county in selected_counties:
         county_df = df[df[county_col] == county]
-        pop_row = pop_df[pop_df['County'] == county].iloc[0] if county in pop_df['County'].values else None
+        county_upper = county.upper().strip()
+        
+        # Find population data
+        matching_rows = pop_df[pop_df['County_Upper'] == county_upper]
+        pop_row = matching_rows.iloc[0] if len(matching_rows) > 0 else None
         
         # Get KEPH level breakdown
         keph_levels = county_df['keph_level'].value_counts().to_dict()
@@ -472,6 +489,8 @@ def create_county_comparison(df, pop_df, county_col, selected_counties):
                 'Population': pop_row.get('Total', 0),
                 'Population Density': pop_row.get('Population Density', 0),
                 'Households': pop_row.get('Households', 0),
+                'Land Area (km²)': pop_row.get('LandArea', 0),
+                'Avg Household Size': pop_row.get('Average_HouseHold_Size', 0),
                 'Facilities per 10k People': round(len(county_df) / (pop_row.get('Total', 1) / 10000), 2)
             })
         
@@ -592,21 +611,17 @@ def save_custom_view(df, filters, view_name):
 
 def main():
     # Header
-    logo = st.image('APP/ASSETS/PNGs/metrics-svgrepo-com.png', width= 120)
+    st.image('APP/ASSETS/PNGs/metrics-svgrepo-com.png', width=120)
     st.markdown('<h1 class="main-header">Kenya Health Facilities & Population Dashboard</h1>', 
                 unsafe_allow_html=True)
     
     # Sidebar
     with st.sidebar:
-        st.image("APP/ASSETS/PNGs/resources-svgrepo-com.png", 
-                 width=120)
+        st.image("APP/ASSETS/PNGs/resources-svgrepo-com.png", width=120)
         
-        expander_logo = 'APP/ASSETS/PNGs/controls-svgrepo-com.png'
-        with st.markdown(f"## {expander_logo} Dashboard Controls"):
-            st.image(expander_logo, width= 50)
+        st.markdown("## Dashboard Controls")
         
         # Data loading
-
         with st.expander("Data Management", expanded=True):
             col1, col2 = st.columns(2)
             with col1:
@@ -620,12 +635,12 @@ def main():
                             pop_df = load_population_data()
                             if pop_df is not None:
                                 st.session_state.population_data = pop_df
-                                st.success(f"Loaded {len(pop_df)} counties population data")
                             
-                            st.success(f"Loaded {len(df):,} facilities!")
+                            st.success(f"Loaded {len(df):,} facilities and population data for {len(pop_df) if pop_df is not None else 0} counties")
+                            st.rerun()
             
             with col2:
-                if st.button("Clear", use_container_width=True, key="clear_data"):
+                if st.button("Clear Data", use_container_width=True, key="clear_data"):
                     st.session_state.dashboard_data = None
                     st.session_state.population_data = None
                     st.session_state.filtered_data = None
@@ -635,10 +650,7 @@ def main():
         if st.session_state.dashboard_data is not None:
             df = st.session_state.dashboard_data
             
-            filter_icon = 'APP/ASSETS/PNGs/filter-svgrepo-com.png'
-            with st.expander(F"{filter_icon} Filters", expanded=True):
-                # Expander icon
-                st.image(filter_icon, width=50)
+            with st.expander("Filters", expanded=True):
                 # Detect county column
                 county_col = None
                 for col in df.columns:
@@ -648,19 +660,23 @@ def main():
                 
                 # County filter
                 if county_col:
-                    counties = ['All'] + sorted(df[county_col].dropna().unique().tolist())
-                    selected_counties = st.multiselect(f" Select Counties", options=counties[1:],default=[],key="county_filter", help="Filter by one or more counties")
-                
-                
+                    counties = sorted(df[county_col].dropna().unique().tolist())
+                    selected_counties = st.multiselect(
+                        "Select Counties", 
+                        options=counties,
+                        default=[],
+                        key="county_filter", 
+                        help="Filter by one or more counties"
+                    )
                 else:
                     selected_counties = []
                 
                 # KEPH Level filter
                 if 'keph_level' in df.columns:
-                    keph_levels = ['All'] + sorted(df['keph_level'].dropna().unique().tolist())
+                    keph_levels = sorted(df['keph_level'].dropna().unique().tolist())
                     selected_keph = st.multiselect(
                         "KEPH Level",
-                        options=keph_levels[1:],
+                        options=keph_levels,
                         default=[],
                         key="keph_filter"
                     )
@@ -669,10 +685,10 @@ def main():
                 
                 # Ownership filter
                 if 'ownership' in df.columns:
-                    ownership_types = ['All'] + sorted(df['ownership'].dropna().unique().tolist())
+                    ownership_types = sorted(df['ownership'].dropna().unique().tolist())
                     selected_ownership = st.multiselect(
                         "Ownership Type",
-                        options=ownership_types[1:],
+                        options=ownership_types,
                         default=[],
                         key="ownership_filter"
                     )
@@ -694,6 +710,7 @@ def main():
                     
                     st.session_state.filtered_data = filtered_df
                     st.success(f"Filtered to {len(filtered_df):,} facilities")
+                    st.rerun()
     
     # Main content
     if st.session_state.dashboard_data is not None:
@@ -749,7 +766,7 @@ def main():
         
         with tab2:
             st.markdown('<h2 class="sub-header">County-Level Analysis</h2>', 
-                    unsafe_allow_html=True)
+                       unsafe_allow_html=True)
             
             if county_col and pop_df is not None:
                 # County selector
@@ -763,9 +780,14 @@ def main():
                 # Display county metrics
                 county_df = df[df[county_col] == selected_county_detail]
                 
-                # Get population data for selected county
-                county_pop_series = pop_df[pop_df['County'] == selected_county_detail]
-                county_pop = county_pop_series.iloc[0] if len(county_pop_series) > 0 else None
+                # Get population data for selected county (case-insensitive)
+                county_pop = None
+                if pop_df is not None:
+                    selected_county_upper = selected_county_detail.upper().strip()
+                    pop_df['County_Upper'] = pop_df['County'].str.upper().str.strip()
+                    matching_rows = pop_df[pop_df['County_Upper'] == selected_county_upper]
+                    if len(matching_rows) > 0:
+                        county_pop = matching_rows.iloc[0]
                 
                 # Metrics row
                 col1, col2, col3, col4 = st.columns(4)
@@ -809,7 +831,12 @@ def main():
                             height=300
                         )
             else:
-                st.info("County or population data not available")
+                if not county_col:
+                    st.info("County column not found in facility data")
+                elif pop_df is None:
+                    st.info("Population data not available. Please load data first.")
+                else:
+                    st.info("County or population data not available")
         
         with tab3:
             st.markdown('<h2 class="sub-header">County Comparison</h2>', 
@@ -830,21 +857,26 @@ def main():
                     if fig:
                         st.plotly_chart(fig, use_container_width=True)
                     
-                    st.subheader("Comparison Data")
-                    st.dataframe(comparison_df, use_container_width=True)
-                    
-                    csv = comparison_df.to_csv(index=False).encode('utf-8')
-                    st.download_button(
-                        label="📥 Download Comparison",
-                        data=csv,
-                        file_name=f"county_comparison_{datetime.now().strftime('%Y%m%d')}.csv",
-                        mime="text/csv"
-                    )
-
+                    if comparison_df is not None:
+                        st.subheader("Comparison Data")
+                        st.dataframe(comparison_df, use_container_width=True)
+                        
+                        csv = comparison_df.to_csv(index=False).encode('utf-8')
+                        st.download_button(
+                            label="📥 Download Comparison",
+                            data=csv,
+                            file_name=f"county_comparison_{datetime.now().strftime('%Y%m%d')}.csv",
+                            mime="text/csv"
+                        )
                 else:
                     st.info("Please select at least 2 counties to compare")
             else:
-                st.info("County or population data not available")
+                if not county_col:
+                    st.info("County column not found in facility data")
+                elif pop_df is None:
+                    st.info("Population data not available. Please load data first.")
+                else:
+                    st.info("County or population data not available")
         
         with tab4:
             st.markdown('<h2 class="sub-header">Data Explorer</h2>', 
