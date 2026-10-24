@@ -40,9 +40,9 @@ if 'ALL DATASETS' not in dataset:
     # Readint the file of the dataset selected
     DataFrame = pd.read_csv(filename)
     if 'CONTRACTED-FACILITIES-FBOs' in filename:
-      import regex as re
-      eq = re.sub('\d+')
-      DataFrame['Facility Name'].replace(eq, '')
+        import regex as re
+        eq = re.sub('\d+')
+        DataFrame['Facility Name'].replace(eq, '')
     st.write('## Dataset Overview')
     st.write(DataFrame)
 
@@ -124,6 +124,3 @@ elif dataset == 'ALL DATASETS':
     with col2:
         st.write('#### Description')
         st.write(combined_Dataframe.describe())
-
-
-    
