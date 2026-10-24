@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import regex as re
 
 st.set_page_config(layout='wide',
                    page_icon="APP/ASSETS/PNGs/health-svgrepo-com.png",
@@ -41,8 +40,9 @@ if 'ALL DATASETS' not in dataset:
     # Readint the file of the dataset selected
     DataFrame = pd.read_csv(filename)
     if 'CONTRACTED-FACILITIES-FBOs' in filename:
-        eq = re.sub('\d+')
-        DataFrame['Facility Name'].replace(eq, '')
+      import regex as re
+      eq = re.sub('\d+')
+      DataFrame['Facility Name'].replace(eq, '')
     st.write('## Dataset Overview')
     st.write(DataFrame)
 
