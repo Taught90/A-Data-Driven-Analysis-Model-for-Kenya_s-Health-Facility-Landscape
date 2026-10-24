@@ -592,8 +592,9 @@ def create_county_comparison(
 # Main app
 # ---------------------------------------------------------------------------
 def main():
-    logo = "ASSETS/PNGs/metrics-svgrepo-com.png"
-    sidebar_logo = "ASSETS/PNGs/resources-svgrepo-com.png"
+    asset_dir = PROJECT_ROOT / ASSET_PATH
+    logo = asset_dir / "metrics-svgrepo-com.png"
+    sidebar_logo = asset_dir / "resources-svgrepo-com.png"
 
     header_col1, header_col2 = st.columns([1, 8])
     with header_col1:
