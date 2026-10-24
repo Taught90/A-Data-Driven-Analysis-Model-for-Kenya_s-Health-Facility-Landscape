@@ -1,26 +1,3 @@
-"""
-Kenya Health Facilities & Population Dashboard
-Run with: streamlit run enhanced_dashboard_fixed.py
-
-Expected data layout:
-APP/
-  CLEANED DATA (CSV)/
-    GEOCODED/
-      CONTRACTED-FACILITES-REHABILITATION.csv
-      CONTRACTED-FACILITIES-COMMUNITY-HOSP.csv
-      CONTRACTED-FACILITIES-INSTITUTIONAL.csv
-      CONTRACTED-FACILITIES-COUNTY-GOVT.csv
-      CONTRACTED-FACILITIES-FBOs.csv
-      CONTRACTED-FACILITIES-GOVERNMENT-OF-KENYA.csv
-      CONTRACTED-FACILITIES-NGOs.csv
-      CONTRACTED-FACILITIES-PRIVATE.csv
-      SHA-FACILITIES-PAYMENT-ANALYSIS.csv
-    *population*.csv
-  ASSETS/PNGs/
-    metrics-svgrepo-com.png
-    resources-svgrepo-com.png
-"""
-
 from pathlib import Path
 from datetime import datetime
 import os
@@ -46,6 +23,21 @@ BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_FACILITY_PATH = BASE_DIR / "APP" / "CLEANED DATA (CSV)" / "GEOCODED"
 DEFAULT_POPULATION_PATH = BASE_DIR / "APP" / "CLEANED DATA (CSV)"
 ASSET_PATH = BASE_DIR / "APP" / "ASSETS" / "PNGs"
+
+# enhanced_dashboard_fixed.py is inside APP/pages/
+BASE_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = BASE_DIR.parent.parent
+
+DEFAULT_FACILITY_PATH = (
+    "/APP/CLEANED DATA (CSV)/GEOCODED"
+)
+
+DEFAULT_POPULATION_PATH = (
+    "/APP/CLEANED DATA (CSV)"
+)
+
+ASSET_PATH = "/APP/ASSETS/PNGs"
+
 
 DATASETS = [
     "CONTRACTED-FACILITES-REHABILITATION",
