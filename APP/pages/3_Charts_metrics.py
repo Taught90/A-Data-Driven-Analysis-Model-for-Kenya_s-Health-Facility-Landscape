@@ -19,11 +19,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-BASE_DIR = Path(__file__).resolve().parent
-DEFAULT_FACILITY_PATH = BASE_DIR / "APP" / "CLEANED DATA (CSV)" / "GEOCODED"
-DEFAULT_POPULATION_PATH = BASE_DIR / "APP" / "CLEANED DATA (CSV)"
-ASSET_PATH = BASE_DIR / "APP" / "ASSETS" / "PNGs"
-
 # enhanced_dashboard_fixed.py is inside APP/pages/
 BASE_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = BASE_DIR.parent.parent
@@ -597,8 +592,8 @@ def create_county_comparison(
 # Main app
 # ---------------------------------------------------------------------------
 def main():
-    logo = ASSET_PATH / "metrics-svgrepo-com.png"
-    sidebar_logo = ASSET_PATH / "resources-svgrepo-com.png"
+    logo = "ASSETS/PNGs/metrics-svgrepo-com.png"
+    sidebar_logo = "ASSETS/PNGs/resources-svgrepo-com.png"
 
     header_col1, header_col2 = st.columns([1, 8])
     with header_col1:
