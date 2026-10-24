@@ -308,11 +308,15 @@ def create_facility_location_viewer(df, pop_df=None, lat_col=None, lon_col=None,
         center_lat, center_lon = -1.286389, 36.817223
     
     fig.update_layout(
-        mapbox=dict(
-            style='carto-positron',
-            center=dict(lat=center_lat, lon=center_lon),
-            zoom=6 if not selected_county else 8
+
+    map=dict(
+        style="open-street-map",  
+        center=dict(lat=-1.2921, lon=36.8219),
+        zoom=6
         ),
+    title="Facility Locations by KEPH Level",
+    margin={"r":0,"t":40,"l":0,"b":0}
+    ),
         height=800,
         margin=dict(l=0, r=0, t=30, b=0),
         legend=dict(
