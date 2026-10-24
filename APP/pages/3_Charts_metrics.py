@@ -282,7 +282,7 @@ def create_facility_location_viewer(df, pop_df=None, lat_col=None, lon_col=None,
     for keph_level, color in color_map.items():
         type_df = geo_df[geo_df['keph_level'] == keph_level]
         if len(type_df) > 0:
-            fig.add_trace(go.Scattermapbox(
+            fig.add_trace(go.Scattermap(
                 lat=type_df[lat_col],
                 lon=type_df[lon_col],
                 mode='markers',
